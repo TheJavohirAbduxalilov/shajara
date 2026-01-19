@@ -1,0 +1,22 @@
+-- Add extended person profile fields (run once).
+ALTER TABLE persons
+    ADD COLUMN given_name VARCHAR(100) NULL,
+    ADD COLUMN patronymic VARCHAR(100) NULL,
+    ADD COLUMN surname VARCHAR(100) NULL,
+    ADD COLUMN surname_at_birth VARCHAR(100) NULL,
+    ADD COLUMN nickname VARCHAR(100) NULL,
+    ADD COLUMN prefix VARCHAR(50) NULL,
+    ADD COLUMN suffix VARCHAR(50) NULL,
+    ADD COLUMN birth_day TINYINT NULL,
+    ADD COLUMN birth_month TINYINT NULL,
+    ADD COLUMN death_day TINYINT NULL,
+    ADD COLUMN death_month TINYINT NULL,
+    ADD COLUMN birth_place VARCHAR(255) NULL,
+    ADD COLUMN death_place VARCHAR(255) NULL,
+    ADD COLUMN burial_place VARCHAR(255) NULL,
+    ADD COLUMN occupation VARCHAR(255) NULL,
+    ADD COLUMN education VARCHAR(255) NULL,
+    ADD COLUMN residence VARCHAR(255) NULL,
+    ADD COLUMN nationality VARCHAR(255) NULL,
+    ADD COLUMN religion VARCHAR(255) NULL,
+    ADD COLUMN cause_of_death VARCHAR(255) NULL;

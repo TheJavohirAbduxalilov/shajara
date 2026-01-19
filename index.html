@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shajara - Семейное дерево</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Левый Sidebar -->
+        <aside class="sidebar">
+            <!-- Поиск -->
+            <div class="sidebar-section">
+                <div class="search-box">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Поиск...">
+                </div>
+            </div>
+
+            <!-- Список членов семьи -->
+            <div class="sidebar-section sidebar-section--grow">
+                <div class="section-header section-header--static">
+                    <span>Члены семьи</span>
+                    <div class="section-actions">
+                        <button class="section-icon-btn" id="importBtn" title="Импорт">
+                            <i data-lucide="upload"></i>
+                        </button>
+                        <button class="section-icon-btn" id="exportBtn" title="Экспорт">
+                            <i data-lucide="download"></i>
+                        </button>
+                    </div>
+                    <span class="section-badge">0</span>
+                </div>
+                <div class="section-content section-content--scrollable">
+                    <ul class="person-list"></ul>
+                </div>
+            </div>
+
+            <!-- Профиль -->
+            <div class="sidebar-profile">
+                <div class="sidebar-profile-info">
+                    <div class="sidebar-profile-avatar">
+                        <i data-lucide="user"></i>
+                    </div>
+                    <span class="sidebar-profile-name"></span>
+                </div>
+                <button class="sidebar-profile-logout" title="Выйти">
+                    <i data-lucide="log-out"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Центральный Canvas -->
+        <main class="canvas">
+            <div class="canvas-content"></div>
+        </main>
+
+        <!-- Правая панель свойств -->
+        <aside class="panel">
+            <!-- Empty State (показывать когда никто не выбран) -->
+            
+            <!-- <div class="panel-empty">
+                <i data-lucide="user" class="panel-empty-icon"></i>
+                <p class="panel-empty-text">Выберите человека из списка</p>
+            </div> -->
+           
+            <div class="panel-content">
+                    <!-- Информация о персоне -->
+                    <div class="panel-section">
+                        <div class="section-header section-header--static">
+                            <span>Информация</span>
+                        </div>
+                        <div class="section-content">
+                    <!-- ФИО -->
+                    <div class="info-field">
+                        <label class="info-label">Имя <span class="required">*</span></label>
+                        <input type="text" class="info-input" placeholder="Имя" required>
+                    </div>
+                    <div class="info-field">
+                        <label class="info-label">Фамилия</label>
+                        <input type="text" class="info-input" placeholder="Фамилия">
+                    </div>
+                    <div class="info-field">
+                        <label class="info-label">Отчество</label>
+                        <input type="text" class="info-input" placeholder="Не указано">
+                    </div>
+
+                    <!-- Пол -->
+                    <div class="info-field">
+                        <label class="info-label">Пол <span class="required">*</span></label>
+                        <div class="gender-selector">
+                            <label class="gender-option">
+                                <input type="radio" name="gender" value="male" checked>
+                                <span class="gender-btn">
+                                    <i data-lucide="mars"></i>
+                                    Мужской
+                                </span>
+                            </label>
+                            <label class="gender-option">
+                                <input type="radio" name="gender" value="female">
+                                <span class="gender-btn">
+                                    <i data-lucide="venus"></i>
+                                    Женский
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Дата рождения -->
+                    <div class="info-field">
+                        <label class="info-label">Дата рождения</label>
+                        <div class="date-picker" data-date-group="birth">
+                            <select class="date-select date-day">
+                                <option value="">День</option>
+                            </select>
+                            <select class="date-select date-month">
+                                <option value="">Месяц</option>
+                            </select>
+                            <select class="date-select date-year">
+                                <option value="">Год</option>
+                            </select>
+                        </div>
+                        <span class="info-age" style="display: none;"></span>
+                    </div>
+
+                    <!-- Точность данных -->
+                    <div class="info-field">
+                        <label class="info-label">Точность данных</label>
+                        <select class="info-select">
+                            <option value="unknown" selected>Неизвестно</option>
+                            <option value="assumed">Предположительно</option>
+                            <option value="relative">Со слов родственника</option>
+                            <option value="confirmed">Подтверждено</option>
+                        </select>
+                    </div>
+                        </div>
+                    </div>
+
+                    <!-- Дополнительно -->
+                    <div class="panel-section">
+                        <button class="section-header" data-collapsed="true">
+                            <span>Дополнительно</span>
+                            <i data-lucide="chevron-down" class="section-chevron"></i>
+                        </button>
+                        <div class="section-content" style="display: none;">
+                    <!-- Фамилия при рождении -->
+                    <div class="info-field">
+                        <label class="info-label">Фамилия при рождении</label>
+                        <input type="text" class="info-input" value="" placeholder="Не указано">
+                    </div>
+
+                    <!-- Место рождения -->
+                    <div class="info-field">
+                        <label class="info-label">Место рождения</label>
+                        <input type="text" class="info-input" placeholder="Не указано">
+                    </div>
+
+                    <!-- Место проживания -->
+                    <div class="info-field">
+                        <label class="info-label">Место проживания</label>
+                        <input type="text" class="info-input" value="" placeholder="Не указано">
+                    </div>
+
+                    <!-- Национальность -->
+                    <div class="info-field">
+                        <label class="info-label">Национальность</label>
+                        <input type="text" class="info-input" value="" placeholder="Не указано">
+                    </div>
+
+                    <!-- Профессия -->
+                    <div class="info-field">
+                        <label class="info-label">Профессия</label>
+                        <input type="text" class="info-input" placeholder="Не указано">
+                    </div>
+
+                    <!-- Биография -->
+                    <div class="info-field">
+                        <label class="info-label">Биография</label>
+                        <textarea class="info-textarea" placeholder="Не указано"></textarea>
+                    </div>
+                        </div>
+                    </div>
+
+                    <!-- Связи -->
+                    <div class="panel-section">
+                        <div class="section-header section-header--static">
+                            <span>Связи</span>
+                        </div>
+                        <div class="section-content">
+
+                    <!-- Родители -->
+                    <div class="relation-group">
+                        <div class="relation-label">
+                            <i data-lucide="user-check"></i>
+                            <span>Родители</span>
+                        </div>
+                    </div>
+
+                    <!-- Семьи -->
+                    <div class="relation-label">
+                        <i data-lucide="heart"></i>
+                        <span>Семьи</span>
+                        <span class="relation-badge">0</span>
+                    </div>
+                    <div class="families-container"></div>
+
+                    <!-- Кнопка добавления супруга -->
+                    <button class="add-btn">
+                        <i data-lucide="plus"></i>
+                        <span>Добавить супруга</span>
+                    </button>
+
+                        </div>
+                    </div>
+                </div>
+            <!-- Действия -->
+            <div class="panel-actions">
+                <button class="action-btn action-btn--danger">
+                    <i data-lucide="trash-2"></i>
+                    <span>Удалить</span>
+                </button>
+                <button class="action-btn action-btn--primary">
+                    <i data-lucide="save"></i>
+                    <span>Сохранить</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Нижний Toolbar -->
+        <footer class="toolbar">
+            <div class="toolbar-group">
+                <button class="toolbar-btn" title="Уменьшить">
+                    <i data-lucide="minus"></i>
+                </button>
+                <div class="zoom-slider">
+                    <input type="range" min="10" max="200" value="100" class="slider">
+                </div>
+                <button class="toolbar-btn" title="Увеличить">
+                    <i data-lucide="plus"></i>
+                </button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+                <span class="zoom-value">100%</span>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" id="go-root-btn" title="К корню дерева">
+                    <i data-lucide="home"></i>
+                    <span class="toolbar-btn-text">К корню</span>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Модальное окно: Добавить родителей -->
+    <div class="modal-overlay" id="addParentsModal">
+        <div class="modal modal--wide">
+            <button class="modal-close">
+                <i data-lucide="x"></i>
+            </button>
+
+            <h2 class="modal-title">Добавить родителей</h2>
+
+            <form class="modal-form">
+                <div class="modal-columns">
+                    <!-- Отец -->
+                    <div class="modal-column">
+                        <div class="modal-column-title">Отец</div>
+                        <div class="form-field">
+                            <label class="form-label">Имя <span class="required">*</span></label>
+                            <input type="text" class="form-input" name="fatherFirstName" placeholder="Имя">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Фамилия</label>
+                            <input type="text" class="form-input" name="fatherLastName" placeholder="Фамилия">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Дата рождения</label>
+                            <div class="date-picker">
+                                <select class="date-select date-day">
+                                    <option value="">День</option>
+                                </select>
+                                <select class="date-select date-month">
+                                    <option value="">Месяц</option>
+                                </select>
+                                <select class="date-select date-year">
+                                    <option value="">Год</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Мать -->
+                    <div class="modal-column">
+                        <div class="modal-column-title">Мать</div>
+                        <div class="form-field">
+                            <label class="form-label">Имя <span class="required">*</span></label>
+                            <input type="text" class="form-input" name="motherFirstName" placeholder="Имя">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Фамилия</label>
+                            <input type="text" class="form-input" name="motherLastName" placeholder="Фамилия">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Дата рождения</label>
+                            <div class="date-picker">
+                                <select class="date-select date-day">
+                                    <option value="">День</option>
+                                </select>
+                                <select class="date-select date-month">
+                                    <option value="">Месяц</option>
+                                </select>
+                                <select class="date-select date-year">
+                                    <option value="">Год</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="modal-btn modal-btn--primary">
+                        Добавить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Добавить супруга -->
+    <div class="modal-overlay" id="addSpouseModal">
+        <div class="modal">
+            <button class="modal-close">
+                <i data-lucide="x"></i>
+            </button>
+
+            <h2 class="modal-title">Добавить супруга</h2>
+
+            <form class="modal-form">
+                <div class="form-field">
+                    <label class="form-label">Имя <span class="required">*</span></label>
+                    <input type="text" class="form-input" name="firstName" placeholder="Имя" required>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Фамилия</label>
+                    <input type="text" class="form-input" name="lastName" placeholder="Фамилия">
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Дата рождения</label>
+                    <div class="date-picker">
+                        <select class="date-select date-day">
+                            <option value="">День</option>
+                        </select>
+                        <select class="date-select date-month">
+                            <option value="">Месяц</option>
+                        </select>
+                        <select class="date-select date-year">
+                            <option value="">Год</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="modal-btn modal-btn--primary">
+                        Добавить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Добавить ребёнка -->
+    <div class="modal-overlay" id="addChildModal">
+        <div class="modal">
+            <button class="modal-close">
+                <i data-lucide="x"></i>
+            </button>
+
+            <h2 class="modal-title">Добавить ребёнка</h2>
+
+            <form class="modal-form">
+                <div class="form-field">
+                    <label class="form-label">Имя <span class="required">*</span></label>
+                    <input type="text" class="form-input" name="firstName" placeholder="Имя" required>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Фамилия</label>
+                    <input type="text" class="form-input" name="lastName" placeholder="Фамилия">
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Пол <span class="required">*</span></label>
+                    <div class="gender-selector">
+                        <label class="gender-option">
+                            <input type="radio" name="childGender" value="male" required>
+                            <span class="gender-btn">
+                                <i data-lucide="mars"></i>
+                                Мужской
+                            </span>
+                        </label>
+                        <label class="gender-option">
+                            <input type="radio" name="childGender" value="female">
+                            <span class="gender-btn">
+                                <i data-lucide="venus"></i>
+                                Женский
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Дата рождения</label>
+                    <div class="date-picker">
+                        <select class="date-select date-day">
+                            <option value="">День</option>
+                        </select>
+                        <select class="date-select date-month">
+                            <option value="">Месяц</option>
+                        </select>
+                        <select class="date-select date-year">
+                            <option value="">Год</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="modal-btn modal-btn--primary">
+                        Добавить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Выбор супруга -->
+    <div class="modal-overlay" id="spouseChoiceModal">
+        <div class="modal modal--sm">
+            <button class="modal-close">
+                <i data-lucide="x"></i>
+            </button>
+            <h3 class="modal-title">Добавить супруга</h3>
+            <div class="choice-buttons">
+                <button class="choice-btn" data-action="new">
+                    <i data-lucide="user-plus"></i>
+                    <span>Создать нового</span>
+                </button>
+                <button class="choice-btn" data-action="existing">
+                    <i data-lucide="users"></i>
+                    <span>Выбрать из дерева</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Выбрать из дерева -->
+    <div class="modal-overlay" id="selectPersonModal">
+        <div class="modal modal--list">
+            <button class="modal-close">
+                <i data-lucide="x"></i>
+            </button>
+            <h3 class="modal-title">Выбрать из дерева</h3>
+
+            <!-- Поиск -->
+            <div class="modal-search">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" class="search-input" placeholder="Поиск...">
+            </div>
+
+            <!-- Список людей -->
+            <ul class="modal-person-list"></ul>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Подтверждение удаления -->
+    <div class="modal-overlay" id="confirmDeleteModal">
+        <div class="modal modal--sm">
+            <button class="modal-close">
+                <i data-lucide="x"></i>
+            </button>
+            <h3 class="modal-title">Удалить человека?</h3>
+            <p class="modal-text">Это действие нельзя отменить.</p>
+            <div class="modal-actions modal-actions--single">
+                <button class="modal-btn modal-btn--danger">Удалить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Подтверждение экспорта -->
+    <div class="modal-overlay" id="confirmExportModal">
+        <div class="modal modal--sm">
+            <button class="modal-close">
+                <i data-lucide="x"></i>
+            </button>
+            <h3 class="modal-title">Экспорт в GEDCOM</h3>
+            <p class="modal-text">Будет создан файл family.ged с данными вашего семейного дерева.</p>
+            <div class="modal-actions modal-actions--single">
+                <button class="modal-btn modal-btn--primary">Экспортировать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Подтверждение импорта -->
+    <div class="modal-overlay" id="confirmImportModal">
+        <div class="modal modal--sm">
+            <button class="modal-close">
+                <i data-lucide="x"></i>
+            </button>
+            <h3 class="modal-title">Импорт из GEDCOM</h3>
+            <p class="modal-text">Текущие данные будут заменены. Это действие нельзя отменить.</p>
+            <div class="modal-actions modal-actions--single">
+                <button class="modal-btn modal-btn--primary">Импортировать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
