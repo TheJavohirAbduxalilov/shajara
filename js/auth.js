@@ -76,14 +76,16 @@ function initAuthHandlers() {
         clearFormError(form);
 
         let isValid = true;
-        const inputs = form.querySelectorAll('.form-input[required]');
+        // Найти все поля с меткой required (span.required в label)
+        const requiredFields = form.querySelectorAll('.form-field:has(.required)');
 
-        inputs.forEach(input => {
-            const step = input.closest('.form-step');
+        requiredFields.forEach(field => {
+            const step = field.closest('.form-step');
             if (step && !step.classList.contains('form-step--active')) {
                 return;
             }
-            if (!validateInput(input)) {
+            const input = field.querySelector('.form-input');
+            if (input && !validateInput(input)) {
                 isValid = false;
             }
         });
@@ -219,10 +221,12 @@ function goToStep(stepNum) {
 
 function validateStep(stepEl) {
     let isValid = true;
-    const inputs = stepEl.querySelectorAll('.form-input[required]');
+    // Найти все поля с меткой required (span.required в label)
+    const requiredFields = stepEl.querySelectorAll('.form-field:has(.required)');
 
-    inputs.forEach(input => {
-        if (!validateInput(input)) {
+    requiredFields.forEach(field => {
+        const input = field.querySelector('.form-input');
+        if (input && !validateInput(input)) {
             isValid = false;
         }
     });
@@ -330,7 +334,11 @@ function validateInput(input) {
     const type = input.type;
     const name = input.name;
 
-    if (input.hasAttribute('required') && !value) {
+    // Проверить обязательность через span.required в label
+    const field = input.closest('.form-field');
+    const hasRequired = field?.querySelector('.required');
+
+    if (hasRequired && !value) {
         showError(input, 'Обязательное поле');
         return false;
     }

@@ -3968,27 +3968,12 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
     }
 
     function initFormValidation() {
+        // Валидация только при submit, не на blur/input
+        // Очистка ошибок при вводе (для UX)
         document.querySelectorAll('.form-input, .info-input').forEach(input => {
-            input.addEventListener('blur', () => {
-                const field = input.closest('.form-field, .info-field');
-                const hasRequired = field?.querySelector('.required');
-
-                if (hasRequired || input.hasAttribute('required')) {
-                    validateRequired(input);
-                }
-            });
-
             input.addEventListener('input', () => {
                 if (input.classList.contains('form-input--error') || input.classList.contains('info-input--error')) {
                     clearFieldError(input);
-                }
-            });
-        });
-
-        document.querySelectorAll('.modal-form').forEach(form => {
-            form.addEventListener('submit', (e) => {
-                if (!validateForm(form)) {
-                    e.preventDefault();
                 }
             });
         });
@@ -4031,15 +4016,30 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
 
     function validateForm(form) {
         let isValid = true;
-        const requiredInputs = form.querySelectorAll('[required], .form-field:has(.required) input');
 
-        requiredInputs.forEach(input => {
-            if (!validateRequired(input)) {
+        // Очистить предыдущие ошибки
+        form.querySelectorAll('.form-input--error, .info-input--error').forEach(el => {
+            clearFieldError(el);
+        });
+
+        // Найти все поля с меткой required (span.required в label)
+        const requiredFields = form.querySelectorAll('.form-field:has(.required), .info-field:has(.required)');
+
+        requiredFields.forEach(field => {
+            const input = field.querySelector('input, select, textarea');
+            if (input && !validateRequired(input)) {
                 isValid = false;
             }
         });
 
         return isValid;
+    }
+
+    function clearFormErrors(form) {
+        if (!form) return;
+        form.querySelectorAll('.form-input--error, .info-input--error').forEach(el => {
+            clearFieldError(el);
+        });
     }
     function initSidebar() {
         const searchInput = document.querySelector('.sidebar .search-input');
@@ -4672,6 +4672,12 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
         if (!currentEditPersonId) return;
 
         const form = e.currentTarget;
+
+        // Валидация формы
+        if (!validateForm(form)) {
+            return; // Не отправлять если есть ошибки
+        }
+
         const fatherFirstName = form.querySelector('[name="fatherFirstName"]')?.value.trim() || '';
         const fatherLastName = form.querySelector('[name="fatherLastName"]')?.value.trim() || '';
         const motherFirstName = form.querySelector('[name="motherFirstName"]')?.value.trim() || '';
@@ -4726,6 +4732,12 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
         }
 
         const form = e.currentTarget;
+
+        // Валидация формы
+        if (!validateForm(form)) {
+            return; // Не отправлять если есть ошибки
+        }
+
         const firstName = form.querySelector('[name="firstName"]')?.value.trim() || '';
         const lastName = form.querySelector('[name="lastName"]')?.value.trim() || '';
         const date = getModalDate(form, 0);
@@ -4787,9 +4799,22 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
         if (!currentMarriageForChildId) return;
 
         const form = e.currentTarget;
+
+        // Валидация формы
+        if (!validateForm(form)) {
+            return; // Не отправлять если есть ошибки
+        }
+
+        // Проверить что пол выбран
+        const genderInput = form.querySelector('input[name="childGender"]:checked');
+        if (!genderInput) {
+            showToast('Выберите пол ребёнка', 'warning');
+            return;
+        }
+
         const firstName = form.querySelector('[name="firstName"]')?.value.trim() || '';
         const lastName = form.querySelector('[name="lastName"]')?.value.trim() || '';
-        const gender = form.querySelector('input[name="childGender"]:checked')?.value || '';
+        const gender = genderInput.value;
         const date = getModalDate(form, 0);
 
         try {

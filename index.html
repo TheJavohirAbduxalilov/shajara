@@ -79,7 +79,7 @@
                     <!-- ФИО -->
                     <div class="info-field">
                         <label class="info-label">Имя <span class="required">*</span></label>
-                        <input type="text" class="info-input" placeholder="Имя" required>
+                        <input type="text" class="info-input" placeholder="Имя">
                     </div>
                     <div class="info-field">
                         <label class="info-label">Фамилия</label>
@@ -267,7 +267,7 @@
 
             <h2 class="modal-title">Добавить родителей</h2>
 
-            <form class="modal-form">
+            <form class="modal-form" novalidate>
                 <div class="modal-columns">
                     <!-- Отец -->
                     <div class="modal-column">
@@ -342,10 +342,10 @@
 
             <h2 class="modal-title">Добавить супруга</h2>
 
-            <form class="modal-form">
+            <form class="modal-form" novalidate>
                 <div class="form-field">
                     <label class="form-label">Имя <span class="required">*</span></label>
-                    <input type="text" class="form-input" name="firstName" placeholder="Имя" required>
+                    <input type="text" class="form-input" name="firstName" placeholder="Имя">
                 </div>
                 <div class="form-field">
                     <label class="form-label">Фамилия</label>
@@ -384,10 +384,10 @@
 
             <h2 class="modal-title">Добавить ребёнка</h2>
 
-            <form class="modal-form">
+            <form class="modal-form" novalidate>
                 <div class="form-field">
                     <label class="form-label">Имя <span class="required">*</span></label>
-                    <input type="text" class="form-input" name="firstName" placeholder="Имя" required>
+                    <input type="text" class="form-input" name="firstName" placeholder="Имя">
                 </div>
                 <div class="form-field">
                     <label class="form-label">Фамилия</label>
@@ -397,7 +397,7 @@
                     <label class="form-label">Пол <span class="required">*</span></label>
                     <div class="gender-selector">
                         <label class="gender-option">
-                            <input type="radio" name="childGender" value="male" required>
+                            <input type="radio" name="childGender" value="male">
                             <span class="gender-btn">
                                 <i data-lucide="mars"></i>
                                 Мужской
