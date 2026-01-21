@@ -3130,8 +3130,8 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
         canvasContentEl = document.querySelector('.canvas-content');
         personListEl = document.querySelector('.person-list');
         personCountEl = document.querySelector('.section-badge');
-        zoomSliderEl = document.querySelector('.zoom-slider .slider');
-        zoomValueEl = document.querySelector('.zoom-value');
+        zoomSliderEl = document.querySelector('.zoom-toolbar-slider .slider');
+        zoomValueEl = document.querySelector('.zoom-toolbar-value');
 
         if (!canvasContentEl) return;
 
@@ -3736,9 +3736,8 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
     }
 
     function initZoomControls() {
-        const zoomInBtn = document.querySelector('.toolbar-btn[title="Увеличить"]');
-        const zoomOutBtn = document.querySelector('.toolbar-btn[title="Уменьшить"]');
-        const goRootBtn = document.getElementById('go-root-btn');
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
 
         if (zoomSliderEl) {
             zoomSliderEl.addEventListener('input', (e) => {
@@ -3752,14 +3751,6 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
 
         zoomInBtn?.addEventListener('click', zoomIn);
         zoomOutBtn?.addEventListener('click', zoomOut);
-        goRootBtn?.addEventListener('click', goToRootPerson);
-    }
-
-    function goToRootPerson() {
-        if (!personsData.length) return;
-        const rootPerson = personsData.find(p => p.is_root) || personsData[0];
-        if (!rootPerson) return;
-        selectPerson(rootPerson.id, { center: true, keepZoom: true });
     }
 
     const MONTHS = [
@@ -4325,7 +4316,7 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
             },
             actions: {
                 saveBtn: panelActions?.querySelector('.action-btn--primary') || null,
-                deleteBtn: panelActions?.querySelector('.action-btn--danger') || null
+                deleteBtn: document.querySelector('.danger-zone-btn') || null
             }
         };
     }
@@ -4350,8 +4341,11 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
         });
 
         const actions = getPanelElements().actions;
-        if (actions.saveBtn) actions.saveBtn.style.display = readOnly ? 'none' : '';
-        if (actions.deleteBtn) actions.deleteBtn.style.display = readOnly ? 'none' : '';
+        const panelActions = document.querySelector('.panel-actions');
+        const dangerZone = document.querySelector('.panel-danger-zone');
+
+        if (panelActions) panelActions.style.display = readOnly ? 'none' : '';
+        if (dangerZone) dangerZone.style.display = readOnly ? 'none' : '';
     }
 
     function setDatePickerValues(picker, day, month, year) {

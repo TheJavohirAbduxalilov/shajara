@@ -124,10 +124,9 @@ body {
 .app {
     display: grid;
     grid-template-columns: var(--sidebar-width) 1fr var(--panel-width);
-    grid-template-rows: 1fr var(--toolbar-height);
+    grid-template-rows: 1fr;
     grid-template-areas:
-        "sidebar canvas panel"
-        "toolbar toolbar toolbar";
+        "sidebar canvas panel";
     height: 100vh;
     width: 100vw;
 }
@@ -962,71 +961,72 @@ body {
 }
 
 /* ----------------------------------------
-   Toolbar (Bottom)
+   Zoom Toolbar (Floating Island)
    ---------------------------------------- */
-.toolbar {
-    grid-area: toolbar;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-md);
-    padding: 0 var(--spacing-lg);
-    background-color: var(--bg-secondary);
-    border-top: 1px solid var(--border-color);
-}
-
-.toolbar-group {
+.zoom-toolbar {
+    position: fixed;
+    bottom: var(--spacing-lg);
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    z-index: 100;
 }
 
-.toolbar-divider {
-    width: 1px;
-    height: 24px;
-    background-color: var(--border-color);
-}
-
-.toolbar-btn {
+.zoom-toolbar-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--spacing-xs);
+    width: 32px;
     height: 32px;
-    padding: 0 var(--spacing-sm);
     background-color: transparent;
-    border: 1px solid transparent;
+    border: none;
     border-radius: var(--radius-sm);
     color: var(--text-secondary);
-    font-family: inherit;
-    font-size: var(--font-size-sm);
     cursor: var(--cursor-pointer) 6 0, pointer;
     transition: all var(--transition-fast);
 }
 
-.toolbar-btn:hover {
+.zoom-toolbar-btn:hover {
     background-color: var(--bg-hover);
     color: var(--text-primary);
 }
 
-.toolbar-btn:active {
+.zoom-toolbar-btn:active {
     background-color: var(--bg-active);
+    transform: scale(0.92);
 }
 
-.toolbar-btn svg {
+.zoom-toolbar-btn svg {
     width: 16px;
     height: 16px;
 }
 
-.toolbar-btn-text {
-    margin-left: var(--spacing-xs);
-}
-
-/* Zoom Slider */
-.zoom-slider {
+.zoom-toolbar-slider {
     width: 100px;
 }
 
+.zoom-toolbar-divider {
+    width: 1px;
+    height: 20px;
+    background-color: var(--border-color);
+}
+
+.zoom-toolbar-value {
+    min-width: 44px;
+    text-align: center;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-secondary);
+}
+
+/* Slider (shared) */
 .slider {
     -webkit-appearance: none;
     appearance: none;
@@ -1065,14 +1065,6 @@ body {
 
 .slider::-moz-range-thumb:hover {
     transform: scale(1.2);
-}
-
-.zoom-value {
-    min-width: 40px;
-    text-align: center;
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-    color: var(--text-secondary);
 }
 
 /* ----------------------------------------
@@ -1329,17 +1321,48 @@ textarea:focus-visible {
     border-color: var(--accent-hover);
 }
 
-/* Danger (Delete) */
-.action-btn--danger {
+/* ----------------------------------------
+   Panel Danger Zone (Delete button)
+   ---------------------------------------- */
+.panel-danger-zone {
+    padding: var(--spacing-lg);
+    border-top: 1px solid var(--border-light);
+    background-color: var(--bg-secondary);
+}
+
+.danger-zone-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: transparent;
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: var(--font-size-sm);
+    cursor: var(--cursor-pointer) 6 0, pointer;
+    transition: all var(--transition-fast);
+}
+
+.danger-zone-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+.danger-zone-btn:hover {
     background-color: rgba(220, 38, 38, 0.1);
-    border-color: rgba(220, 38, 38, 0.3);
+    border-color: rgba(220, 38, 38, 0.4);
     color: #ef4444;
 }
 
-.action-btn--danger:hover {
+.danger-zone-btn:active {
     background-color: #dc2626;
     border-color: #dc2626;
     color: var(--text-primary);
+    transform: scale(0.98);
 }
 
 /* ----------------------------------------
@@ -2412,9 +2435,8 @@ button,
     /* Grid: только canvas на всю ширину */
     .app {
         grid-template-columns: 1fr;
-        grid-template-areas:
-            "canvas"
-            "toolbar";
+        grid-template-rows: 1fr;
+        grid-template-areas: "canvas";
     }
 
     /* Показать toggle кнопки */
@@ -2460,18 +2482,9 @@ button,
         transform: translateX(0);
     }
 
-    /* Toolbar: компактнее */
-    .toolbar {
-        padding: 0 var(--spacing-sm);
-        gap: var(--spacing-xs);
-    }
-
-    .toolbar-btn-text {
+    /* Hide zoom toolbar on mobile */
+    .zoom-toolbar {
         display: none;
-    }
-
-    .zoom-slider {
-        width: 80px;
     }
 
     /* Canvas: полная ширина */

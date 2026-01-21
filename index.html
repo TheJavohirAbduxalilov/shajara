@@ -231,42 +231,34 @@
                 </div>
             <!-- Действия -->
             <div class="panel-actions">
-                <button class="action-btn action-btn--danger">
-                    <i data-lucide="trash-2"></i>
-                    <span>Удалить</span>
-                </button>
                 <button class="action-btn action-btn--primary">
                     <i data-lucide="save"></i>
                     <span>Сохранить</span>
                 </button>
             </div>
+            <!-- Удаление (внизу, отдельно) -->
+            <div class="panel-danger-zone">
+                <button class="danger-zone-btn">
+                    <i data-lucide="trash-2"></i>
+                    <span>Удалить человека</span>
+                </button>
+            </div>
         </aside>
 
-        <!-- Нижний Toolbar -->
-        <footer class="toolbar">
-            <div class="toolbar-group">
-                <button class="toolbar-btn" title="Уменьшить">
-                    <i data-lucide="minus"></i>
-                </button>
-                <div class="zoom-slider">
-                    <input type="range" min="10" max="200" value="100" class="slider">
-                </div>
-                <button class="toolbar-btn" title="Увеличить">
-                    <i data-lucide="plus"></i>
-                </button>
+        <!-- Zoom Toolbar (floating island) -->
+        <div class="zoom-toolbar">
+            <button class="zoom-toolbar-btn" id="zoomOutBtn" title="Уменьшить">
+                <i data-lucide="minus"></i>
+            </button>
+            <div class="zoom-toolbar-slider">
+                <input type="range" min="10" max="200" value="100" class="slider">
             </div>
-            <div class="toolbar-divider"></div>
-            <div class="toolbar-group">
-                <span class="zoom-value">100%</span>
-            </div>
-            <div class="toolbar-divider"></div>
-            <div class="toolbar-group">
-                <button class="toolbar-btn" id="go-root-btn" title="К корню дерева">
-                    <i data-lucide="home"></i>
-                    <span class="toolbar-btn-text">К корню</span>
-                </button>
-            </div>
-        </footer>
+            <button class="zoom-toolbar-btn" id="zoomInBtn" title="Увеличить">
+                <i data-lucide="plus"></i>
+            </button>
+            <div class="zoom-toolbar-divider"></div>
+            <span class="zoom-toolbar-value">100%</span>
+        </div>
     </div>
 
     <!-- Модальное окно: Добавить родителей -->
