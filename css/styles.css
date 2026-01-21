@@ -1322,15 +1322,15 @@ textarea:focus-visible {
 }
 
 /* ----------------------------------------
-   Panel Danger Zone (Delete button)
+   Delete Person Button (in panel-content)
    ---------------------------------------- */
-.panel-danger-zone {
-    padding: var(--spacing-lg);
+.panel-section--danger {
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
     border-top: 1px solid var(--border-light);
-    background-color: var(--bg-secondary);
 }
 
-.danger-zone-btn {
+.delete-person-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1338,7 +1338,7 @@ textarea:focus-visible {
     width: 100%;
     padding: var(--spacing-sm) var(--spacing-md);
     background-color: transparent;
-    border: 1px solid rgba(220, 38, 38, 0.2);
+    border: 1px dashed var(--border-color);
     border-radius: var(--radius-sm);
     color: var(--text-muted);
     font-family: inherit;
@@ -1347,21 +1347,19 @@ textarea:focus-visible {
     transition: all var(--transition-fast);
 }
 
-.danger-zone-btn svg {
+.delete-person-btn svg {
     width: 14px;
     height: 14px;
 }
 
-.danger-zone-btn:hover {
-    background-color: rgba(220, 38, 38, 0.1);
-    border-color: rgba(220, 38, 38, 0.4);
+.delete-person-btn:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    border-style: solid;
     color: #ef4444;
 }
 
-.danger-zone-btn:active {
-    background-color: #dc2626;
-    border-color: #dc2626;
-    color: var(--text-primary);
+.delete-person-btn:active {
     transform: scale(0.98);
 }
 

@@ -4316,7 +4316,7 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
             },
             actions: {
                 saveBtn: panelActions?.querySelector('.action-btn--primary') || null,
-                deleteBtn: document.querySelector('.danger-zone-btn') || null
+                deleteBtn: document.querySelector('.delete-person-btn') || null
             }
         };
     }
@@ -4340,12 +4340,11 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
             }
         });
 
-        const actions = getPanelElements().actions;
         const panelActions = document.querySelector('.panel-actions');
-        const dangerZone = document.querySelector('.panel-danger-zone');
+        const dangerSection = document.querySelector('.panel-section--danger');
 
         if (panelActions) panelActions.style.display = readOnly ? 'none' : '';
-        if (dangerZone) dangerZone.style.display = readOnly ? 'none' : '';
+        if (dangerSection) dangerSection.style.display = readOnly ? 'none' : '';
     }
 
     function setDatePickerValues(picker, day, month, year) {
