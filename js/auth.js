@@ -120,7 +120,7 @@ function initAuthHandlers() {
                 window.location.href = 'index.html';
             }
         } catch (error) {
-            showFormError(form, error.message || '������ �����������');
+            showFormError(form, error.message || 'Ошибка авторизации');
         }
     });
 }

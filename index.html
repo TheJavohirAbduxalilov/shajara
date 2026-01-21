@@ -27,6 +27,9 @@
                 <div class="section-header section-header--static">
                     <span>Члены семьи</span>
                     <div class="section-actions">
+                        <button class="section-icon-btn" id="shareBtn" title="Поделиться">
+                            <i data-lucide="share-2"></i>
+                        </button>
                         <button class="section-icon-btn" id="importBtn" title="Импорт">
                             <i data-lucide="upload"></i>
                         </button>
@@ -132,10 +135,10 @@
                     <div class="info-field">
                         <label class="info-label">Точность данных</label>
                         <select class="info-select">
-                            <option value="unknown" selected>Неизвестно</option>
-                            <option value="assumed">Предположительно</option>
+                            <option value="confirmed" selected>Подтверждено</option>
                             <option value="relative">Со слов родственника</option>
-                            <option value="confirmed">Подтверждено</option>
+                            <option value="assumed">Предположительно</option>
+                            <option value="unknown">Неизвестно</option>
                         </select>
                     </div>
                         </div>
@@ -514,6 +517,55 @@
             <div class="modal-actions modal-actions--single">
                 <button class="modal-btn modal-btn--primary">Импортировать</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Поделиться -->
+    <div class="modal-overlay" id="shareModal">
+        <div class="modal modal--share">
+            <button class="modal-close">
+                <i data-lucide="x"></i>
+            </button>
+            <h3 class="modal-title">Поделиться деревом</h3>
+
+            <div class="share-section">
+                <div class="share-label">
+                    <i data-lucide="eye"></i>
+                    <span>Только просмотр</span>
+                </div>
+                <div class="share-link-row">
+                    <input type="text" class="share-input" id="shareViewLink" readonly>
+                    <button class="share-copy-btn" data-link="view" title="Копировать">
+                        <i data-lucide="copy"></i>
+                    </button>
+                </div>
+                <button class="share-reset-btn" data-type="view">
+                    <i data-lucide="refresh-cw"></i>
+                    <span>Сбросить ссылку</span>
+                </button>
+            </div>
+
+            <div class="share-section">
+                <div class="share-label">
+                    <i data-lucide="edit-3"></i>
+                    <span>Просмотр и редактирование</span>
+                </div>
+                <div class="share-link-row">
+                    <input type="text" class="share-input" id="shareEditLink" readonly>
+                    <button class="share-copy-btn" data-link="edit" title="Копировать">
+                        <i data-lucide="copy"></i>
+                    </button>
+                </div>
+                <button class="share-reset-btn" data-type="edit">
+                    <i data-lucide="refresh-cw"></i>
+                    <span>Сбросить ссылку</span>
+                </button>
+            </div>
+
+            <p class="share-hint">
+                <i data-lucide="info"></i>
+                Любой, у кого есть ссылка, сможет получить доступ к дереву
+            </p>
         </div>
     </div>
 

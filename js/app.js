@@ -2576,16 +2576,6 @@ function normalizeGender(gender) {
 }
 
 /**
- * Coerce person ID to correct type
- * @param {*} value - Value to coerce
- * @returns {*} Coerced value
- */
-function coercePersonId(value) {
-    if (!personsData.length) return value;
-    return (typeof personsData[0].id === 'number') ? Number(value) : value;
-}
-
-/**
  * Build data structure for FamilyEcho layout
  * @param {Set|null} visible - Set of visible person IDs
  * @returns {Object} Family data structure
@@ -3041,7 +3031,8 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
         selectPerson: 'selectPersonModal',
         confirmDelete: 'confirmDeleteModal',
         confirmExport: 'confirmExportModal',
-        confirmImport: 'confirmImportModal'
+        confirmImport: 'confirmImportModal',
+        shareModal: 'shareModal'
     };
 
     const modalState = {
@@ -3965,6 +3956,18 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
 
         document.getElementById('exportBtn')?.addEventListener('click', () => openModal('confirmExport'));
         document.getElementById('importBtn')?.addEventListener('click', () => importGEDCOM());
+        document.getElementById('shareBtn')?.addEventListener('click', () => openShareModal());
+
+        // Share modal handlers
+        const shareModal = document.getElementById('shareModal');
+        if (shareModal) {
+            shareModal.querySelectorAll('.share-copy-btn').forEach(btn => {
+                btn.addEventListener('click', () => copyShareLink(btn.dataset.link));
+            });
+            shareModal.querySelectorAll('.share-reset-btn').forEach(btn => {
+                btn.addEventListener('click', () => resetShareLink(btn.dataset.type));
+            });
+        }
     }
 
     function initFormValidation() {
@@ -5062,6 +5065,95 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
         return families;
     }
 
+    // ========================================
+    // Share Functions
+    // ========================================
+
+    async function openShareModal() {
+        if (appState.accessLevel !== 'owner') {
+            showToast('Только владелец может делиться деревом', 'warning');
+            return;
+        }
+
+        openModal('shareModal');
+        await loadShareLinks();
+    }
+
+    async function loadShareLinks() {
+        const viewInput = document.getElementById('shareViewLink');
+        const editInput = document.getElementById('shareEditLink');
+
+        if (!viewInput || !editInput) return;
+
+        viewInput.value = 'Загрузка...';
+        editInput.value = 'Загрузка...';
+
+        try {
+            const result = await API.getShareLinks();
+            if (result.success) {
+                const baseUrl = window.location.origin + window.location.pathname;
+                viewInput.value = result.data.view_token
+                    ? `${baseUrl}?share=${result.data.view_token}`
+                    : 'Ссылка не создана';
+                editInput.value = result.data.edit_token
+                    ? `${baseUrl}?share=${result.data.edit_token}`
+                    : 'Ссылка не создана';
+            } else {
+                viewInput.value = 'Ошибка загрузки';
+                editInput.value = 'Ошибка загрузки';
+            }
+        } catch (error) {
+            console.error('Error loading share links:', error);
+            viewInput.value = 'Ошибка загрузки';
+            editInput.value = 'Ошибка загрузки';
+        }
+
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+
+    async function copyShareLink(type) {
+        const inputId = type === 'view' ? 'shareViewLink' : 'shareEditLink';
+        const input = document.getElementById(inputId);
+
+        if (!input || !input.value || input.value.includes('Ошибка') || input.value.includes('Загрузка')) {
+            showToast('Ссылка недоступна', 'warning');
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(input.value);
+            showToast('Ссылка скопирована', 'success');
+        } catch (error) {
+            // Fallback для старых браузеров
+            input.select();
+            document.execCommand('copy');
+            showToast('Ссылка скопирована', 'success');
+        }
+    }
+
+    async function resetShareLink(type) {
+        if (appState.accessLevel !== 'owner') {
+            showToast('Нет прав', 'warning');
+            return;
+        }
+
+        try {
+            const result = await API.regenerateShareLinks(type);
+            if (result.success) {
+                await loadShareLinks();
+                const typeName = type === 'view' ? 'просмотра' : 'редактирования';
+                showToast(`Ссылка ${typeName} сброшена`, 'success');
+            } else {
+                showToast('Ошибка сброса ссылки', 'error');
+            }
+        } catch (error) {
+            console.error('Error resetting share link:', error);
+            showToast('Ошибка сброса ссылки', 'error');
+        }
+    }
+
     async function loadDataFromAPI() {
         try {
             const result = await API.getTree();
@@ -5121,6 +5213,18 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
         addButtons.forEach(btn => {
             btn.style.display = canEdit() ? '' : 'none';
         });
+
+        // Кнопка "Поделиться" только для владельца
+        const shareBtn = document.getElementById('shareBtn');
+        if (shareBtn) {
+            shareBtn.style.display = appState.accessLevel === 'owner' ? '' : 'none';
+        }
+
+        // Кнопка "Импорт" только для владельца и редактора
+        const importBtn = document.getElementById('importBtn');
+        if (importBtn) {
+            importBtn.style.display = canEdit() ? '' : 'none';
+        }
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
