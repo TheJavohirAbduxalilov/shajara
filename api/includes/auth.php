@@ -185,8 +185,22 @@ class Auth {
      * Get token from Authorization header
      */
     private function getTokenFromHeader() {
-        $headers = getallheaders();
-        $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+        $authHeader = '';
+
+        // Try getallheaders() if available (Apache)
+        if (function_exists('getallheaders')) {
+            $headers = getallheaders();
+            $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+        }
+
+        // Fallback for CGI/FastCGI (InfinityFree, etc.)
+        if (empty($authHeader)) {
+            if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+                $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
+            } elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+                $authHeader = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+            }
+        }
 
         if (preg_match('/Bearer\s+(.+)$/i', $authHeader, $matches)) {
             return $matches[1];
