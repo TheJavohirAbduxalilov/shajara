@@ -3515,23 +3515,58 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
         }
     }
 
-    function zoomIn() {
-        stopPanAnimation();
-        state.zoom = Math.min(2.5, state.zoom + 0.1);
+    function zoomToPoint(newZoom, pointX, pointY) {
+        if (!viewportEl) return;
+
+        const zoomRatio = newZoom / state.zoom;
+        state.panX = pointX - (pointX - state.panX) * zoomRatio;
+        state.panY = pointY - (pointY - state.panY) * zoomRatio;
+        state.zoom = newZoom;
+
         updateTransform();
         updateZoomDisplay();
     }
 
+    function getZoomFocusPoint() {
+        if (!viewportEl) return { x: 0, y: 0 };
+
+        const rect = viewportEl.getBoundingClientRect();
+
+        // Если есть выбранный человек — зумим к нему
+        if (state.selectedPerson && state.positions[state.selectedPerson]) {
+            const pos = state.positions[state.selectedPerson];
+            const personCenterX = pos.x + CARD_W / 2;
+            const personCenterY = pos.y + CARD_H / 2;
+
+            // Позиция человека в координатах viewport
+            const screenX = state.panX + personCenterX * state.zoom;
+            const screenY = state.panY + personCenterY * state.zoom;
+
+            return { x: screenX, y: screenY };
+        }
+
+        // Иначе — центр viewport
+        return { x: rect.width / 2, y: rect.height / 2 };
+    }
+
+    function zoomIn() {
+        stopPanAnimation();
+        const newZoom = Math.min(2.5, state.zoom * 1.15);
+        const focus = getZoomFocusPoint();
+        zoomToPoint(newZoom, focus.x, focus.y);
+    }
+
     function zoomOut() {
         stopPanAnimation();
-        state.zoom = Math.max(0.15, state.zoom - 0.1);
-        updateTransform();
-        updateZoomDisplay();
+        const newZoom = Math.max(0.15, state.zoom / 1.15);
+        const focus = getZoomFocusPoint();
+        zoomToPoint(newZoom, focus.x, focus.y);
     }
 
     function initViewportEvents() {
         if (!viewportEl) return;
 
+        // === Mouse Pan ===
         viewportEl.addEventListener('mousedown', (e) => {
             if (e.button !== 0) return;
             if (e.target.closest('.tree-node')) return;
@@ -3554,26 +3589,135 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
             state.isPanning = false;
         });
 
+        // === Mouse Wheel Zoom (плавное, к точке курсора) ===
         viewportEl.addEventListener('wheel', (e) => {
             e.preventDefault();
             stopPanAnimation();
-            const delta = e.deltaY > 0 ? -0.1 : 0.1;
-            const newZoom = Math.max(0.15, Math.min(2.5, state.zoom + delta));
 
+            // Плавный zoom с учётом скорости прокрутки
+            const zoomIntensity = 0.002;
+            const delta = -e.deltaY * zoomIntensity;
+            const newZoom = Math.max(0.15, Math.min(2.5, state.zoom * (1 + delta)));
+
+            // Точка курсора относительно viewport
             const rect = viewportEl.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left - rect.width / 2;
-            const mouseY = e.clientY - rect.top - rect.height / 2;
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
 
-            const wsX = (mouseX - state.panX) / state.zoom;
-            const wsY = (mouseY - state.panY) / state.zoom;
-
-            state.panX = mouseX - wsX * newZoom;
-            state.panY = mouseY - wsY * newZoom;
+            // Zoom к точке курсора (не к центру)
+            const zoomRatio = newZoom / state.zoom;
+            state.panX = mouseX - (mouseX - state.panX) * zoomRatio;
+            state.panY = mouseY - (mouseY - state.panY) * zoomRatio;
             state.zoom = newZoom;
 
             updateTransform();
             updateZoomDisplay();
         }, { passive: false });
+
+        // === Touch Events (pinch zoom + pan) ===
+        let touchState = {
+            isPanning: false,
+            isPinching: false,
+            startX: 0,
+            startY: 0,
+            startPanX: 0,
+            startPanY: 0,
+            startDist: 0,
+            startZoom: 1,
+            centerX: 0,
+            centerY: 0
+        };
+
+        function getTouchDistance(touches) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function getTouchCenter(touches) {
+            return {
+                x: (touches[0].clientX + touches[1].clientX) / 2,
+                y: (touches[0].clientY + touches[1].clientY) / 2
+            };
+        }
+
+        viewportEl.addEventListener('touchstart', (e) => {
+            // Не блокируем клики по узлам дерева
+            if (e.target.closest('.tree-node')) return;
+
+            e.preventDefault();
+            stopPanAnimation();
+
+            if (e.touches.length === 1) {
+                // Single finger - pan
+                touchState.isPanning = true;
+                touchState.isPinching = false;
+                touchState.startX = e.touches[0].clientX;
+                touchState.startY = e.touches[0].clientY;
+                touchState.startPanX = state.panX;
+                touchState.startPanY = state.panY;
+            } else if (e.touches.length === 2) {
+                // Two fingers - pinch zoom
+                touchState.isPanning = false;
+                touchState.isPinching = true;
+                touchState.startDist = getTouchDistance(e.touches);
+                touchState.startZoom = state.zoom;
+
+                const rect = viewportEl.getBoundingClientRect();
+                const center = getTouchCenter(e.touches);
+                touchState.centerX = center.x - rect.left;
+                touchState.centerY = center.y - rect.top;
+                touchState.startPanX = state.panX;
+                touchState.startPanY = state.panY;
+            }
+        }, { passive: false });
+
+        viewportEl.addEventListener('touchmove', (e) => {
+            if (touchState.isPanning && e.touches.length === 1) {
+                // Single finger pan
+                e.preventDefault();
+                const dx = e.touches[0].clientX - touchState.startX;
+                const dy = e.touches[0].clientY - touchState.startY;
+                state.panX = touchState.startPanX + dx;
+                state.panY = touchState.startPanY + dy;
+                updateTransform();
+            } else if (touchState.isPinching && e.touches.length === 2) {
+                // Pinch zoom
+                e.preventDefault();
+                const currentDist = getTouchDistance(e.touches);
+                const scale = currentDist / touchState.startDist;
+                const newZoom = Math.max(0.15, Math.min(2.5, touchState.startZoom * scale));
+
+                // Zoom к центру pinch
+                const zoomRatio = newZoom / touchState.startZoom;
+                state.panX = touchState.centerX - (touchState.centerX - touchState.startPanX) * zoomRatio;
+                state.panY = touchState.centerY - (touchState.centerY - touchState.startPanY) * zoomRatio;
+                state.zoom = newZoom;
+
+                updateTransform();
+                updateZoomDisplay();
+            }
+        }, { passive: false });
+
+        viewportEl.addEventListener('touchend', (e) => {
+            if (e.touches.length === 0) {
+                touchState.isPanning = false;
+                touchState.isPinching = false;
+            } else if (e.touches.length === 1) {
+                // Switch from pinch to pan
+                touchState.isPinching = false;
+                touchState.isPanning = true;
+                touchState.startX = e.touches[0].clientX;
+                touchState.startY = e.touches[0].clientY;
+                touchState.startPanX = state.panX;
+                touchState.startPanY = state.panY;
+            }
+        });
+
+        viewportEl.addEventListener('touchcancel', () => {
+            touchState.isPanning = false;
+            touchState.isPinching = false;
+        });
     }
     function initSectionToggles() {
         const sectionHeaders = document.querySelectorAll('.section-header[data-collapsed]');
@@ -3598,10 +3742,11 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
 
         if (zoomSliderEl) {
             zoomSliderEl.addEventListener('input', (e) => {
+                stopPanAnimation();
                 const value = parseInt(e.target.value, 10);
-                state.zoom = Math.max(0.1, Math.min(2.5, value / 100));
-                updateTransform();
-                updateZoomDisplay();
+                const newZoom = Math.max(0.1, Math.min(2.5, value / 100));
+                const focus = getZoomFocusPoint();
+                zoomToPoint(newZoom, focus.x, focus.y);
             });
         }
 
@@ -5204,6 +5349,77 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
             updateTransform();
             updateZoomDisplay();
         }
+
+        // На мобильных: закрыть sidebar (panel открывается только по кнопке)
+        if (window.innerWidth <= 1024) {
+            closeMobilePanels();
+        }
+    }
+
+    // ==================== Mobile Responsive ====================
+
+    function initMobileOverlay() {
+        const mobileOverlay = document.createElement('div');
+        mobileOverlay.className = 'mobile-overlay';
+        mobileOverlay.id = 'mobileOverlay';
+        document.body.appendChild(mobileOverlay);
+    }
+
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const panel = document.querySelector('.panel');
+        const overlay = document.getElementById('mobileOverlay');
+
+        // Закрыть panel если открыт
+        panel?.classList.remove('active');
+
+        sidebar?.classList.toggle('active');
+        overlay?.classList.toggle('active', sidebar?.classList.contains('active'));
+    }
+
+    function togglePanel() {
+        const sidebar = document.querySelector('.sidebar');
+        const panel = document.querySelector('.panel');
+        const overlay = document.getElementById('mobileOverlay');
+
+        // Закрыть sidebar если открыт
+        sidebar?.classList.remove('active');
+
+        panel?.classList.toggle('active');
+        overlay?.classList.toggle('active', panel?.classList.contains('active'));
+    }
+
+    function closeMobilePanels() {
+        document.querySelector('.sidebar')?.classList.remove('active');
+        document.querySelector('.panel')?.classList.remove('active');
+        document.getElementById('mobileOverlay')?.classList.remove('active');
+    }
+
+    function initMobileToggle() {
+        initMobileOverlay();
+
+        const toggleSidebarBtn = document.getElementById('toggleSidebar');
+        const togglePanelBtn = document.getElementById('togglePanel');
+        const overlay = document.getElementById('mobileOverlay');
+
+        // Click events
+        toggleSidebarBtn?.addEventListener('click', toggleSidebar);
+        togglePanelBtn?.addEventListener('click', togglePanel);
+        overlay?.addEventListener('click', closeMobilePanels);
+
+        // Touch events for mobile devices
+        toggleSidebarBtn?.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            toggleSidebar();
+        });
+        togglePanelBtn?.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            togglePanel();
+        });
+        overlay?.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            closeMobilePanels();
+        });
     }
 
     function applyAccessLevel() {
@@ -5242,6 +5458,7 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
         initSidebar();
         initPanelActions();
         initAgeCalculation();
+        initMobileToggle();
 
         const token = localStorage.getItem('auth_token');
         const shareToken = getShareToken();

@@ -589,6 +589,10 @@ body {
     overflow: hidden;
     position: relative;
     cursor: var(--cursor-drag) 8 8, grab;
+    /* Touch support */
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .canvas-content {
@@ -2338,6 +2342,179 @@ button,
 .drag-handle {
     transition: opacity var(--transition-fast),
                 transform var(--transition-fast);
+}
+
+/* ----------------------------------------
+   Mobile Toggle Buttons
+   ---------------------------------------- */
+.mobile-toggle {
+    display: none;
+    position: absolute;
+    top: var(--spacing-md);
+    z-index: 100;
+    width: 40px;
+    height: 40px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    cursor: var(--cursor-pointer) 6 0, pointer;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.mobile-toggle:hover {
+    background-color: var(--bg-hover);
+    border-color: var(--accent);
+}
+
+.mobile-toggle:active {
+    transform: scale(0.92);
+}
+
+.mobile-toggle svg {
+    width: 20px;
+    height: 20px;
+}
+
+.mobile-toggle--sidebar {
+    left: var(--spacing-md);
+}
+
+.mobile-toggle--panel {
+    right: var(--spacing-md);
+}
+
+/* Mobile Overlay Backdrop */
+.mobile-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity var(--transition-slow);
+}
+
+.mobile-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* ----------------------------------------
+   Responsive Design (Tablet/Mobile < 1024px)
+   ---------------------------------------- */
+@media (max-width: 1024px) {
+    /* Grid: только canvas на всю ширину */
+    .app {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "canvas"
+            "toolbar";
+    }
+
+    /* Показать toggle кнопки */
+    .mobile-toggle {
+        display: flex;
+    }
+
+    /* Sidebar: overlay слева */
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        height: 100dvh;
+        width: 280px;
+        max-width: 85vw;
+        transform: translateX(-100%);
+        transition: transform var(--transition-slow);
+        z-index: 1000;
+        border-right: 1px solid var(--border-color);
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    /* Panel: overlay справа */
+    .panel {
+        position: fixed;
+        right: 0;
+        top: 0;
+        height: 100vh;
+        height: 100dvh;
+        width: 300px;
+        max-width: 85vw;
+        transform: translateX(100%);
+        transition: transform var(--transition-slow);
+        z-index: 1000;
+        border-left: 1px solid var(--border-color);
+    }
+
+    .panel.active {
+        transform: translateX(0);
+    }
+
+    /* Toolbar: компактнее */
+    .toolbar {
+        padding: 0 var(--spacing-sm);
+        gap: var(--spacing-xs);
+    }
+
+    .toolbar-btn-text {
+        display: none;
+    }
+
+    .zoom-slider {
+        width: 80px;
+    }
+
+    /* Canvas: полная ширина */
+    .canvas {
+        grid-area: canvas;
+    }
+
+    /* Toast: адаптация для мобильных */
+    .toast-container {
+        left: var(--spacing-md);
+        right: var(--spacing-md);
+        transform: none;
+    }
+
+    .toast {
+        width: 100%;
+    }
+
+    /* Modal: адаптация для мобильных */
+    .modal {
+        max-width: calc(100vw - var(--spacing-lg) * 2);
+        margin: var(--spacing-lg);
+    }
+
+    .modal--wide {
+        max-width: calc(100vw - var(--spacing-md) * 2);
+        padding: var(--spacing-lg);
+    }
+
+    .modal-columns {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+
+    .modal-column {
+        padding-bottom: var(--spacing-md);
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .modal-column:last-child {
+        padding-bottom: 0;
+        border-bottom: none;
+    }
 }
 
 
