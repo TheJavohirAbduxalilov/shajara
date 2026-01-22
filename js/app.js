@@ -3551,14 +3551,14 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
 
     function zoomIn() {
         stopPanAnimation();
-        const newZoom = Math.min(2.5, state.zoom * 1.15);
+        const newZoom = Math.min(2.0, state.zoom + 0.1);
         const focus = getZoomFocusPoint();
         zoomToPoint(newZoom, focus.x, focus.y);
     }
 
     function zoomOut() {
         stopPanAnimation();
-        const newZoom = Math.max(0.15, state.zoom / 1.15);
+        const newZoom = Math.max(0.1, state.zoom - 0.1);
         const focus = getZoomFocusPoint();
         zoomToPoint(newZoom, focus.x, focus.y);
     }
@@ -3597,7 +3597,7 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
             // Плавный zoom с учётом скорости прокрутки
             const zoomIntensity = 0.002;
             const delta = -e.deltaY * zoomIntensity;
-            const newZoom = Math.max(0.15, Math.min(2.5, state.zoom * (1 + delta)));
+            const newZoom = Math.max(0.1, Math.min(2.0, state.zoom * (1 + delta)));
 
             // Точка курсора относительно viewport
             const rect = viewportEl.getBoundingClientRect();
@@ -3686,7 +3686,7 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
                 e.preventDefault();
                 const currentDist = getTouchDistance(e.touches);
                 const scale = currentDist / touchState.startDist;
-                const newZoom = Math.max(0.15, Math.min(2.5, touchState.startZoom * scale));
+                const newZoom = Math.max(0.1, Math.min(2.0, touchState.startZoom * scale));
 
                 // Zoom к центру pinch
                 const zoomRatio = newZoom / touchState.startZoom;
@@ -3743,7 +3743,7 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
             zoomSliderEl.addEventListener('input', (e) => {
                 stopPanAnimation();
                 const value = parseInt(e.target.value, 10);
-                const newZoom = Math.max(0.1, Math.min(2.5, value / 100));
+                const newZoom = Math.max(0.1, Math.min(2.0, value / 100));
                 const focus = getZoomFocusPoint();
                 zoomToPoint(newZoom, focus.x, focus.y);
             });

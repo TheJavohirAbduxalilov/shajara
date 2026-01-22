@@ -524,11 +524,7 @@ body {
 }
 
 .person-item--selected {
-    background-color: var(--accent-muted);
-}
-
-.person-item--selected:hover {
-    background-color: var(--accent-muted);
+    background-color: var(--bg-active);
 }
 
 .person-avatar {
@@ -975,7 +971,6 @@ body {
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
     z-index: 100;
 }
 
@@ -2021,13 +2016,8 @@ textarea:focus-visible {
 }
 
 .tree-node--selected {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-}
-
-.tree-node--selected:hover {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
+    outline: 2px solid var(--text-secondary);
+    outline-offset: 3px;
 }
 
 .tree-node-content {
