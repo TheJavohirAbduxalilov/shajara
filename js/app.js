@@ -5039,6 +5039,11 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
             render(selectPerson);
             renderSidebarList();
             showSaveIndicator('Изменения сохранены');
+
+            // На мобильных: закрыть панель после сохранения
+            if (window.innerWidth <= 1024) {
+                closeMobilePanels();
+            }
         }
     }
 
@@ -5327,6 +5332,7 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
     function selectPerson(personId, options = {}) {
         const { center = true, keepZoom = true } = options;
         const coercedId = coercePersonId(personId);
+        const isAlreadySelected = idsEqual(state.selectedPerson, coercedId);
 
         state.selectedPerson = coercedId;
         state.visiblePersons = null;
@@ -5343,9 +5349,15 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
             updateZoomDisplay();
         }
 
-        // На мобильных: закрыть sidebar (panel открывается только по кнопке)
+        // На мобильных: закрыть sidebar, открыть panel если кликнули на уже выбранного
         if (window.innerWidth <= 1024) {
-            closeMobilePanels();
+            document.querySelector('.sidebar')?.classList.remove('active');
+            if (isAlreadySelected) {
+                document.querySelector('.panel')?.classList.add('active');
+                document.getElementById('mobileOverlay')?.classList.add('active');
+            } else {
+                document.getElementById('mobileOverlay')?.classList.remove('active');
+            }
         }
     }
 
@@ -5370,18 +5382,6 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
         overlay?.classList.toggle('active', sidebar?.classList.contains('active'));
     }
 
-    function togglePanel() {
-        const sidebar = document.querySelector('.sidebar');
-        const panel = document.querySelector('.panel');
-        const overlay = document.getElementById('mobileOverlay');
-
-        // Закрыть sidebar если открыт
-        sidebar?.classList.remove('active');
-
-        panel?.classList.toggle('active');
-        overlay?.classList.toggle('active', panel?.classList.contains('active'));
-    }
-
     function closeMobilePanels() {
         document.querySelector('.sidebar')?.classList.remove('active');
         document.querySelector('.panel')?.classList.remove('active');
@@ -5392,22 +5392,16 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
         initMobileOverlay();
 
         const toggleSidebarBtn = document.getElementById('toggleSidebar');
-        const togglePanelBtn = document.getElementById('togglePanel');
         const overlay = document.getElementById('mobileOverlay');
 
         // Click events
         toggleSidebarBtn?.addEventListener('click', toggleSidebar);
-        togglePanelBtn?.addEventListener('click', togglePanel);
         overlay?.addEventListener('click', closeMobilePanels);
 
         // Touch events for mobile devices
         toggleSidebarBtn?.addEventListener('touchend', (e) => {
             e.preventDefault();
             toggleSidebar();
-        });
-        togglePanelBtn?.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            togglePanel();
         });
         overlay?.addEventListener('touchend', (e) => {
             e.preventDefault();

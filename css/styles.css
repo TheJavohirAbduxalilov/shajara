@@ -961,16 +961,16 @@ body {
    ---------------------------------------- */
 .zoom-toolbar {
     position: fixed;
-    bottom: var(--spacing-lg);
+    bottom: var(--spacing-md);
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-sm) var(--spacing-md);
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-md);
     z-index: 100;
 }
 
@@ -978,11 +978,11 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     background-color: transparent;
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-xs);
     color: var(--text-secondary);
     cursor: var(--cursor-pointer) 6 0, pointer;
     transition: all var(--transition-fast);
@@ -1004,12 +1004,12 @@ body {
 }
 
 .zoom-toolbar-slider {
-    width: 100px;
+    width: 80px;
 }
 
 .zoom-toolbar-divider {
     width: 1px;
-    height: 20px;
+    height: 16px;
     background-color: var(--border-color);
 }
 
@@ -2391,10 +2391,6 @@ button,
 
 .mobile-toggle--sidebar {
     left: var(--spacing-md);
-}
-
-.mobile-toggle--panel {
-    right: var(--spacing-md);
 }
 
 /* Mobile Overlay Backdrop */
