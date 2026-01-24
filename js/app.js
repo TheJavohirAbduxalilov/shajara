@@ -3044,6 +3044,7 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
     let personToDelete = null;
     let currentMarriageForChildId = null;
     let pendingImportFile = null;
+    let originalPanelData = null; // Исходные данные панели для отслеживания изменений
 
     const TOAST_ICONS = {
         success: 'check',
@@ -3641,12 +3642,16 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
             };
         }
 
-        viewportEl.addEventListener('touchstart', (e) => {
-            // Не блокируем клики по узлам дерева
-            if (e.target.closest('.tree-node')) return;
+        // Порог движения для различения tap от drag (в пикселях)
+        const TAP_THRESHOLD = 10;
 
+        viewportEl.addEventListener('touchstart', (e) => {
             e.preventDefault();
             stopPanAnimation();
+
+            // Запоминаем, началось ли касание на tree-node
+            touchState.startedOnNode = e.target.closest('.tree-node');
+            touchState.hasMoved = false;
 
             if (e.touches.length === 1) {
                 // Single finger - pan
@@ -3674,16 +3679,23 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
 
         viewportEl.addEventListener('touchmove', (e) => {
             if (touchState.isPanning && e.touches.length === 1) {
-                // Single finger pan
-                e.preventDefault();
+                // Проверяем, было ли значительное движение
                 const dx = e.touches[0].clientX - touchState.startX;
                 const dy = e.touches[0].clientY - touchState.startY;
+
+                if (Math.abs(dx) > TAP_THRESHOLD || Math.abs(dy) > TAP_THRESHOLD) {
+                    touchState.hasMoved = true;
+                }
+
+                // Single finger pan
+                e.preventDefault();
                 state.panX = touchState.startPanX + dx;
                 state.panY = touchState.startPanY + dy;
                 updateTransform();
             } else if (touchState.isPinching && e.touches.length === 2) {
                 // Pinch zoom
                 e.preventDefault();
+                touchState.hasMoved = true;
                 const currentDist = getTouchDistance(e.touches);
                 const scale = currentDist / touchState.startDist;
                 const newZoom = Math.max(0.1, Math.min(2.0, touchState.startZoom * scale));
@@ -3700,9 +3712,19 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
         }, { passive: false });
 
         viewportEl.addEventListener('touchend', (e) => {
+            // Если касание было на tree-node и не было движения - это tap (выбор узла)
+            if (touchState.startedOnNode && !touchState.hasMoved && e.touches.length === 0) {
+                const personId = touchState.startedOnNode.dataset.personId;
+                if (personId) {
+                    selectPerson(personId);
+                }
+            }
+
             if (e.touches.length === 0) {
                 touchState.isPanning = false;
                 touchState.isPinching = false;
+                touchState.startedOnNode = null;
+                touchState.hasMoved = false;
             } else if (e.touches.length === 1) {
                 // Switch from pinch to pan
                 touchState.isPinching = false;
@@ -3717,6 +3739,16 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
         viewportEl.addEventListener('touchcancel', () => {
             touchState.isPanning = false;
             touchState.isPinching = false;
+            touchState.startedOnNode = null;
+            touchState.hasMoved = false;
+        });
+
+        // Закрывать панели при клике на пустое пространство (мобильные)
+        viewportEl.addEventListener('click', (e) => {
+            if (window.innerWidth > 1024) return;
+            // Не закрывать если кликнули на узел дерева
+            if (e.target.closest('.tree-node')) return;
+            closeMobilePanels();
         });
     }
     function initSectionToggles() {
@@ -4104,6 +4136,54 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
                 btn.addEventListener('click', () => resetShareLink(btn.dataset.type));
             });
         }
+
+        // Mobile: scroll input into view when keyboard appears
+        initMobileInputScroll();
+    }
+
+    /**
+     * Initialize scroll-into-view for inputs on mobile
+     * When keyboard appears, scroll the focused input into visible area
+     */
+    function initMobileInputScroll() {
+        // Only on mobile devices
+        if (window.innerWidth > 768) return;
+
+        document.addEventListener('focusin', (e) => {
+            const input = e.target;
+
+            // Only for inputs/textareas inside modals
+            if (!input.matches('input, textarea, select')) return;
+            const modal = input.closest('.modal');
+            if (!modal) return;
+
+            // Small delay to let keyboard appear
+            setTimeout(() => {
+                // Scroll input into view with some padding
+                input.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }, 300);
+        });
+
+        // Also handle resize (keyboard show/hide) with visualViewport API
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                const activeElement = document.activeElement;
+                if (activeElement && activeElement.matches('input, textarea, select')) {
+                    const modal = activeElement.closest('.modal');
+                    if (modal) {
+                        setTimeout(() => {
+                            activeElement.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center'
+                            });
+                        }, 100);
+                    }
+                }
+            });
+        }
     }
 
     function initFormValidation() {
@@ -4321,6 +4401,64 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
         };
     }
 
+    // Получить текущие данные панели для сравнения
+    function getCurrentPanelData() {
+        const panel = getPanelElements();
+        const selectedGender = Array.from(panel.info.genderRadios || []).find(r => r.checked)?.value || '';
+
+        return {
+            given_name: panel.info.givenName?.value.trim() || '',
+            surname: panel.info.surname?.value.trim() || '',
+            patronymic: panel.info.patronymic?.value.trim() || '',
+            gender: selectedGender,
+            birth_day: panel.info.birthPicker?.querySelector('.date-day')?.value || '',
+            birth_month: panel.info.birthPicker?.querySelector('.date-month')?.value || '',
+            birth_year: panel.info.birthPicker?.querySelector('.date-year')?.value || '',
+            data_accuracy: panel.info.accuracySelect?.value || 'unknown',
+            surname_at_birth: panel.additional.surnameAtBirth?.value.trim() || '',
+            birth_place: panel.additional.birthPlace?.value.trim() || '',
+            residence: panel.additional.residence?.value.trim() || '',
+            nationality: panel.additional.nationality?.value.trim() || '',
+            occupation: panel.additional.occupation?.value.trim() || '',
+            biography: panel.additional.biography?.value || ''
+        };
+    }
+
+    // Сохранить исходные данные панели
+    function saveOriginalPanelData() {
+        originalPanelData = getCurrentPanelData();
+        updateSaveButtonState();
+    }
+
+    // Проверить есть ли изменения
+    function hasPanelChanges() {
+        if (!originalPanelData) return false;
+        const current = getCurrentPanelData();
+
+        for (const key in originalPanelData) {
+            if (originalPanelData[key] !== current[key]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Обновить состояние кнопки Сохранить
+    function updateSaveButtonState() {
+        const panel = getPanelElements();
+        const saveBtn = panel.actions.saveBtn;
+        if (!saveBtn) return;
+
+        const hasChanges = hasPanelChanges();
+        saveBtn.disabled = !hasChanges;
+
+        if (hasChanges) {
+            saveBtn.classList.remove('action-btn--disabled');
+        } else {
+            saveBtn.classList.add('action-btn--disabled');
+        }
+    }
+
     function setPanelReadOnly(readOnly) {
         const panel = document.querySelector('.panel');
         if (!panel) return;
@@ -4400,10 +4538,14 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
 
         renderRelations(person);
         setPanelReadOnly(!canEdit());
+
+        // Сохранить исходные данные для отслеживания изменений
+        saveOriginalPanelData();
     }
 
     function showEmptyPanel() {
         currentEditPersonId = null;
+        originalPanelData = null; // Сбросить отслеживание изменений
         const panel = document.querySelector('.panel');
         if (!panel) return;
 
@@ -4620,6 +4762,27 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
                 }
             });
         }
+
+        // Слушатели для отслеживания изменений в панели
+        initPanelChangeTracking();
+    }
+
+    function initPanelChangeTracking() {
+        const panelContent = document.querySelector('.panel-content');
+        if (!panelContent) return;
+
+        // Слушатель для всех input, textarea, select внутри panel-content
+        panelContent.addEventListener('input', (e) => {
+            if (e.target.matches('input, textarea')) {
+                updateSaveButtonState();
+            }
+        });
+
+        panelContent.addEventListener('change', (e) => {
+            if (e.target.matches('input, select, textarea')) {
+                updateSaveButtonState();
+            }
+        });
     }
     function openSpouseChoiceModal() {
         if (!currentEditPersonId) return;
@@ -4852,8 +5015,13 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
             if (marriageResult.success) {
                 marriages.push(marriageResult.data);
                 closeModal('parents');
+
+                // Выбрать отца и закрыть панель на мобильных
                 selectPerson(father.id, { center: true, keepZoom: true });
-                renderSidebarList();
+                if (window.innerWidth <= 1024) {
+                    closeMobilePanels();
+                }
+
                 showToast('Родители добавлены', 'success');
             }
         } catch (error) {
@@ -4903,8 +5071,13 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
             if (marriageResult.success) {
                 marriages.push(marriageResult.data);
                 closeModal('spouse');
-                selectPerson(person.id, { center: false, keepZoom: true });
-                renderSidebarList();
+
+                // Выбрать нового супруга и закрыть панель на мобильных
+                selectPerson(spouse.id, { center: true, keepZoom: true });
+                if (window.innerWidth <= 1024) {
+                    closeMobilePanels();
+                }
+
                 showToast('Супруг добавлен', 'success');
             }
         } catch (error) {
@@ -4925,8 +5098,14 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
             const marriageResult = await API.createMarriage(husband, wife, []);
             if (marriageResult.success) {
                 marriages.push(marriageResult.data);
-                selectPerson(person.id, { center: false, keepZoom: true });
-                renderSidebarList();
+                closeModal('selectPerson');
+
+                // Выбрать супруга и закрыть панель на мобильных
+                selectPerson(spouse.id, { center: true, keepZoom: true });
+                if (window.innerWidth <= 1024) {
+                    closeMobilePanels();
+                }
+
                 showToast('Супруг добавлен', 'success');
             }
         } catch (error) {
@@ -4977,8 +5156,13 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
                     marriage.children.push(child.id);
                 }
                 closeModal('child');
-                selectPerson(currentEditPersonId, { center: false, keepZoom: true });
-                renderSidebarList();
+
+                // Выбрать добавленного ребёнка и закрыть панель на мобильных
+                selectPerson(child.id, { center: true, keepZoom: true });
+                if (window.innerWidth <= 1024) {
+                    closeMobilePanels();
+                }
+
                 showToast('Ребёнок добавлен', 'success');
             }
         } catch (error) {
@@ -5039,6 +5223,9 @@ function placeChildWithFamily(childId, x, y, visited = new Set()) {
             render(selectPerson);
             renderSidebarList();
             showSaveIndicator('Изменения сохранены');
+
+            // Сбросить отслеживание изменений после успешного сохранения
+            saveOriginalPanelData();
 
             // На мобильных: закрыть панель после сохранения
             if (window.innerWidth <= 1024) {

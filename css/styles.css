@@ -1316,6 +1316,22 @@ textarea:focus-visible {
     border-color: var(--accent-hover);
 }
 
+/* Disabled state */
+.action-btn--primary:disabled,
+.action-btn--primary.action-btn--disabled {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.action-btn--primary:disabled:hover,
+.action-btn--primary.action-btn--disabled:hover {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+}
+
 /* ----------------------------------------
    Delete Person Button (in panel-content)
    ---------------------------------------- */
@@ -1680,6 +1696,17 @@ textarea:focus-visible {
 .modal-person-item .person-avatar svg {
     width: 16px;
     height: 16px;
+}
+
+/* Gender-colored avatars in modal */
+.modal-person-item .person-avatar--male {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: var(--gender-male);
+}
+
+.modal-person-item .person-avatar--female {
+    background-color: rgba(236, 72, 153, 0.15);
+    color: var(--gender-female);
 }
 
 .modal-person-item .person-info {
@@ -2487,17 +2514,12 @@ button,
         width: 100%;
     }
 
-    /* Modal: адаптация для мобильных */
-    .modal {
-        max-width: calc(100vw - var(--spacing-lg) * 2);
-        margin: var(--spacing-lg);
+    /* Drag handles: всегда видны на мобильных */
+    .drag-handle {
+        opacity: 1;
     }
 
-    .modal--wide {
-        max-width: calc(100vw - var(--spacing-md) * 2);
-        padding: var(--spacing-lg);
-    }
-
+    /* Modal: адаптация для планшетов */
     .modal-columns {
         grid-template-columns: 1fr;
         gap: var(--spacing-lg);
@@ -2511,6 +2533,120 @@ button,
     .modal-column:last-child {
         padding-bottom: 0;
         border-bottom: none;
+    }
+}
+
+/* ----------------------------------------
+   Fullscreen Modals (Mobile < 768px)
+   ---------------------------------------- */
+@media (max-width: 768px) {
+    /* Modal: полноэкранный */
+    .modal,
+    .modal--wide,
+    .modal--list {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        max-height: 100%;
+        margin: 0;
+        padding: 0;
+        border-radius: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transform: translateY(100%);
+    }
+
+    .modal-overlay.active .modal,
+    .modal-overlay.active .modal--wide,
+    .modal-overlay.active .modal--list {
+        transform: translateY(0);
+    }
+
+    /* Modal close */
+    .modal-close {
+        top: var(--spacing-lg);
+        right: var(--spacing-lg);
+    }
+
+    /* Modal title: header с отступами */
+    .modal-title {
+        flex-shrink: 0;
+        margin: 0;
+        padding: var(--spacing-lg);
+        padding-right: 48px;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    /* Modal form: scrollable с padding */
+    .modal-form {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: var(--spacing-lg);
+    }
+
+    /* Modal columns внутри form: без лишних отступов */
+    .modal-form .modal-columns {
+        margin-bottom: 0;
+    }
+
+    /* Modal actions: sticky footer */
+    .modal-actions {
+        flex-shrink: 0;
+        position: sticky;
+        bottom: calc(-1 * var(--spacing-lg));
+        margin-top: auto;
+        margin-left: calc(-1 * var(--spacing-lg));
+        margin-right: calc(-1 * var(--spacing-lg));
+        margin-bottom: calc(-1 * var(--spacing-lg));
+        padding: var(--spacing-lg);
+        border-top: 1px solid var(--border-light);
+        background-color: var(--bg-secondary);
+    }
+
+    /* List modal (selectPersonModal) */
+    .modal--list .modal-search {
+        flex-shrink: 0;
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .modal--list .modal-person-list {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Small modals (confirmations) - bottom sheet */
+    .modal--sm {
+        top: auto;
+        height: auto;
+        max-height: 60vh;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        padding: var(--spacing-lg);
+        overflow: visible;
+    }
+
+    .modal--sm .modal-title {
+        padding: 0;
+        padding-right: 40px;
+        border-bottom: none;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .modal--sm .modal-actions {
+        position: static;
+        margin: 0;
+        padding: 0;
+        padding-top: var(--spacing-lg);
+        border-top: none;
+        background-color: transparent;
     }
 }
 
